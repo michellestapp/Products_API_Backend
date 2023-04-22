@@ -29,6 +29,7 @@ class Product(db.Model):
     name = db.Column(db.String(255), nullable = False)
     description = db.Column(db.String(255), nullable = False)
     price = db.Column(db.Float, nullable = False)
+    inventory_quantity = db.Column(db.Integer)
 
 
 # Schemas
@@ -37,9 +38,14 @@ class ProductSchema(ma.Schema):
     name = fields.String(required = True)
     description = fields.String(required = True)
     price = fields.Float(required = True)
+    inventory_quantity = fields.Integer
 
     class Metaa:
         fields = ("id","name","description","price")
+
+    @post_load
+    def create(self, data, **kwargs):
+        return Product(**data)
 
 product_schema = ProductSchema()
 products_schema = ProductSchema(many = True)
@@ -48,8 +54,24 @@ products_schema = ProductSchema(many = True)
 # Resources
 class ProductListResources(Resource):
     def get(self):
-        return "Hello World"
+        all_products = Product.query.all()
+        return product_schema.dump(all_products), 200
+    
+    def post(self):
+        data = request.get_json()
+        try:
+            new_product = product_schema.load(data)
+            db.session.add(new_product)
+            db.session.commit()
+            return product_schema.dump(new_product), 201
+        except ValidationError as err:
+            return err.messages,400
+        
 
-
+class ProductResource(Resource):
+    def get(self,pk):
+        product_from_db = Product.query.get_or_404(pk)
+        return product_schema.dump(product_from_db), 200
 # Routes
-api.add_resource(ProductListResources,'api/products/')
+api.add_resource(ProductListResources,'/api/products')
+api.add_resource(ProductResource,'/api/products/<int:pk>')
