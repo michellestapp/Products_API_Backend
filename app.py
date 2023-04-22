@@ -31,6 +31,9 @@ class Product(db.Model):
     price = db.Column(db.Float, nullable = False)
     inventory_quantity = db.Column(db.Integer)
 
+    def __repr__(self):
+        return f'{self.name} {self.description} {self.price} {self.inventory_quantity}'
+
 
 # Schemas
 class ProductSchema(ma.Schema):
@@ -38,10 +41,10 @@ class ProductSchema(ma.Schema):
     name = fields.String(required = True)
     description = fields.String(required = True)
     price = fields.Float(required = True)
-    inventory_quantity = fields.Integer
+    inventory_quantity = fields.Integer()
 
-    class Metaa:
-        fields = ("id","name","description","price")
+    class Meta:
+        fields = ("id","name","description","price","inventory_quantity")
 
     @post_load
     def create(self, data, **kwargs):
@@ -55,7 +58,7 @@ products_schema = ProductSchema(many = True)
 class ProductListResources(Resource):
     def get(self):
         all_products = Product.query.all()
-        return product_schema.dump(all_products), 200
+        return products_schema.dump(all_products), 200
     
     def post(self):
         data = request.get_json()
@@ -72,6 +75,20 @@ class ProductResource(Resource):
     def get(self,pk):
         product_from_db = Product.query.get_or_404(pk)
         return product_schema.dump(product_from_db), 200
+    
+    def put(self,pk):
+        product_from_db = Product.query.get_or_404(pk)
+        if 'name' in request.json:
+            product_from_db.name = request.json['name']
+        if 'description' in request.json:
+            product_from_db.description = request.json['description']
+        if 'price' in request.json:
+            product_from_db.price = request.json['price']
+        if 'inventory_quantity' in request.json['inventory_quantity']:
+            product_from_db.inventory_quantity = request.json['inventory_quantity']
+        db.session.commit()
+        return product_schema.dump(pk), 200
+    
 # Routes
-api.add_resource(ProductListResources,'/api/products')
+api.add_resource(ProductListResources,'/api/products/')
 api.add_resource(ProductResource,'/api/products/<int:pk>')
