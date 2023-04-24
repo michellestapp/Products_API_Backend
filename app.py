@@ -84,10 +84,17 @@ class ProductResource(Resource):
             product_from_db.description = request.json['description']
         if 'price' in request.json:
             product_from_db.price = request.json['price']
-        if 'inventory_quantity' in request.json['inventory_quantity']:
+        if 'inventory_quantity' in request.json:
             product_from_db.inventory_quantity = request.json['inventory_quantity']
         db.session.commit()
         return product_schema.dump(pk), 200
+    
+    def delete(self,pk):
+        print('Hello World')
+        product_from_db = Product.query.get_or_404(pk)
+        db.session.delete(product_from_db)
+        db.session.commit()
+        return '',204
     
 # Routes
 api.add_resource(ProductListResources,'/api/products/')
