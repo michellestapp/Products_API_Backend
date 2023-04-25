@@ -30,9 +30,10 @@ class Product(db.Model):
     description = db.Column(db.String(255), nullable = False)
     price = db.Column(db.Float, nullable = False)
     inventory_quantity = db.Column(db.Integer)
+    image = db.column(db.String)
 
     def __repr__(self):
-        return f'{self.name} {self.description} {self.price} {self.inventory_quantity}'
+        return f'{self.name} {self.description} {self.price} {self.inventory_quantity} {self.image}'
 
 
 # Schemas
@@ -42,9 +43,10 @@ class ProductSchema(ma.Schema):
     description = fields.String(required = True)
     price = fields.Float(required = True)
     inventory_quantity = fields.Integer()
+    image = fields.String()
 
     class Meta:
-        fields = ("id","name","description","price","inventory_quantity")
+        fields = ("id","name","description","price","inventory_quantity". "image")
 
     @post_load
     def create(self, data, **kwargs):
@@ -86,11 +88,13 @@ class ProductResource(Resource):
             product_from_db.price = request.json['price']
         if 'inventory_quantity' in request.json:
             product_from_db.inventory_quantity = request.json['inventory_quantity']
+        if 'image' in request.json:
+            product_from_db.image = request.json['image']
+
         db.session.commit()
         return product_schema.dump(pk), 200
     
     def delete(self,pk):
-        print('Hello World')
         product_from_db = Product.query.get_or_404(pk)
         db.session.delete(product_from_db)
         db.session.commit()
