@@ -30,7 +30,7 @@ class Product(db.Model):
     description = db.Column(db.String(255), nullable = False)
     price = db.Column(db.Float, nullable = False)
     inventory_quantity = db.Column(db.Integer)
-    image = db.column(db.String)
+    image = db.Column(db.String)
 
     def __repr__(self):
         return f'{self.name} {self.description} {self.price} {self.inventory_quantity} {self.image}'
@@ -46,7 +46,7 @@ class ProductSchema(ma.Schema):
     image = fields.String()
 
     class Meta:
-        fields = ("id","name","description","price","inventory_quantity". "image")
+        fields = ("id","name","description","price","inventory_quantity", "image")
 
     @post_load
     def create(self, data, **kwargs):
